@@ -257,7 +257,7 @@ def register_user(request):
         print("User deleted")
         new_user_profile.delete()
         print("User_profile delted")
-        return Response({"Status":500,"FirebaseError":message,"Error":detail})
+        return Response({"Simulated_Status":500,"FirebaseError":message,"Error":detail})
  
     print(firebase_user)
     
