@@ -106,8 +106,8 @@ SIMPLE_JWT = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
 
     'django.middleware.common.CommonMiddleware',
@@ -197,5 +197,5 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 STATIC_ROOT =  os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)
+#STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)
 django_heroku.settings(locals())

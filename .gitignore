@@ -2,3 +2,4 @@
 /env
 /env_38
 /env38
+*.sqlite3
