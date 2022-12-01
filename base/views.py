@@ -519,8 +519,10 @@ def like_post(request):
 
     try:
         user1 = User_profile.objects.get(uuid=user_uuid)
-        post1 = User_post.objects.get(pk=user_post_id) 
-        like1 = Post_like.objects.create(post_id=post1,profile_id=user1)
+        post1 = User_post.objects.get(pk=user_post_id)
+        like1 = Post_like.objects.filter(post_id=post1).filter(profile_id=user1)
+        if not like1.exists():
+            like1 = Post_like.objects.create(post_id=post1,profile_id=user1)
     except Exception as e:
         return Response({"Error":str(e)})
 
@@ -532,10 +534,11 @@ def like_post(request):
 @api_view(['GET'])
 def unlike_post(request,uuid,post_id):
     try:
-        post1 = Post_comment.objects.get(pk=post_id) 
+        post1 = User_post.objects.get(pk=post_id) 
         user1 = User_profile.objects.get(uuid=uuid) 
         like1 = Post_like.objects.filter(post_id=post1).filter(profile_id=user1)
-        like1.delete()
+        if like1.exists():
+            like1.delete()
     except Exception as e:
         return Response({"Error":str(e)})
         
