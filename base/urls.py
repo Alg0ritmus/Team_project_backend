@@ -47,6 +47,9 @@ urlpatterns = [
     path('create_post_comment/',views.create_post_comment,name="create_post_comment"),
     path('delete_post_comment/<str:pk>',views.delete_post_comment,name="delete_post_comment"),
 
+    path('like_post/',views.like_post,name="like_post"),
+    path('unlike_post/<str:uuid>/<int:post_id>',views.unlike_post,name="unlike_post"),
+
 
 
 ]
