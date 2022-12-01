@@ -503,3 +503,41 @@ def delete_post_comment(request,pk):
         
     return Response({"Success":"This route is verified!","Comment": "deleted"})
 
+
+
+@csrf_exempt
+#@firebase_token_verification
+@api_view(['POST'])
+def like_post(request):
+    
+    raw_data = request.body.decode()
+    
+    json_data = json.loads(raw_data)
+
+    user_uuid = json_data["uuid"]
+    user_post_id = json_data["post_id"]
+
+    try:
+        user1 = User_profile.objects.get(uuid=user_uuid)
+        post1 = User_post.objects.get(pk=user_post_id) 
+        like1 = Post_like.objects.create(post_id=post1,profile_id=user1)
+    except Exception as e:
+        return Response({"Error":str(e)})
+
+    return Response({"Success":"This route is verified!","Comment": "created"})
+
+
+
+#@firebase_token_verification
+@api_view(['GET'])
+def unlike_post(request,uuid,post_id):
+    try:
+        post1 = Post_comment.objects.get(pk=post_id) 
+        user1 = User_profile.objects.get(uuid=uuid) 
+        like1 = Post_like.objects.filter(post_id=post1).filter(profile_id=user1)
+        like1.delete()
+    except Exception as e:
+        return Response({"Error":str(e)})
+        
+    return Response({"Success":"This route is verified!","Comment": "deleted"})
+
