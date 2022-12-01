@@ -64,18 +64,18 @@ class User_post(models.Model):
     # 1:M, if user is deleted, posts are also deleted (CASCADE)
     # 1 User can have multiple posts
     profile_id = models.ForeignKey(User_profile,on_delete=models.CASCADE)
-    created_date = models.DateField(auto_now_add=True)  
+    created_date = models.DateTimeField(blank=True, null=True,auto_now_add=True) 
     shared_counter = models.IntegerField(default=0) 
 
     def __str__(self):
-        return "User_post ID: %s | User_post text : %s..." % (self.pk,self.text[::20]) 
+        return "User_post ID: %s" % (self.pk) 
 
 
 
 class Post_like(models.Model):
     post_id = models.ForeignKey(User_post,on_delete=models.CASCADE)
     profile_id = models.ForeignKey(User_profile,on_delete=models.CASCADE)
-    created_date = models.DateField(auto_now_add=True) 
+    created_date = models.DateTimeField(blank=True, null=True,auto_now_add=True)
     #state = models.BooleanField(default=True) True/False ???
     def __str__(self):
         return "Post_like ID: %s | User_profile ID : %s" % (self.pk,self.profile_id) 
@@ -83,7 +83,7 @@ class Post_like(models.Model):
 class Post_comment(models.Model):
     post_id = models.ForeignKey(User_post,on_delete=models.CASCADE)
     profile_id = models.ForeignKey(User_profile,on_delete=models.CASCADE)
-    created_date = models.DateField(auto_now_add=True)
+    created_date = models.DateTimeField(blank=True, null=True,auto_now_add=True)
     text = models.TextField(null=True, blank=False)
 
     def __str__(self):
@@ -109,14 +109,14 @@ class Audio_post(models.Model):
     photo_sample_url = models.URLField(max_length=400, blank=True)
 
     def __str__(self):
-        return "Audio_post ID: %s | user_post ID : %s" % (self.pk,self.user_post_id) 
+        return "Audio_post ID: %s | user_post ID : %s" % (self.pk,self.user_audio_id) 
 
 class Video_post(models.Model):
     user_video_id = models.ForeignKey(User_post,on_delete=models.CASCADE)
     photo_sample_url = models.URLField(max_length=400, blank=True)
 
     def __str__(self):
-        return "Video_post ID: %s | user_post ID : %s" % (self.pk,self.user_post_id) 
+        return "Video_post ID: %s | user_post ID : %s" % (self.pk,self.user_video_id) 
 
 
 #################  Requests  #################

@@ -5,13 +5,14 @@ import pyrebase
 
 
 from django.contrib.auth.models import User
-from .models import User_profile
+from .models import *
 
 import json
-
+import requests
 
 from django.views.decorators.csrf import csrf_exempt
 import uuid
+import datetime
 
 
 
@@ -197,25 +198,31 @@ def register_user(request):
     raw_data = request.body.decode()
     
     json_data = json.loads(raw_data)
-    print(json_data,json_data["username"],json_data["email"],json_data["password"])
+    #print(json_data,json_data["username"],json_data["email"],json_data["password"])
 
-    user_username = json_data["username"]
+    user_username = json_data["firstName"]
+    user_first_name = user_username
+
+    user_last_name = json_data["lastName"]
     user_email = json_data["email"]
     user_password = json_data["password"]
+    user_day_of_birth_raw = json_data["dateOfBirth"].split("-")
+    # e.g. datetime.datetime(2020, 5, 17)
+    user_day_of_birth = datetime.datetime(int(user_day_of_birth_raw[0]),int(user_day_of_birth_raw[1]),int(user_day_of_birth_raw[2]))
 
     # create User (django native)
 
     try:
         if User.objects.filter(email=user_email).exists():
-            return Response({"Validation Error":"Email has been already used!"})
+            return Response({"Error":"Email has been already used!"})
 
         if User.objects.filter(username=user_username).exists():
-            return Response({"Validation Error":"Username has been already used!"})
+            return Response({"Error":"Username has been already used!"})
         new_user = User.objects.create_user(
-            username=user_username, email=user_email, password=user_password)
+            username=user_username, email=user_email, password=user_password,first_name=user_first_name,last_name=user_last_name)
         new_user.save()
     except Exception as e:
-                return Response({"Register User Response Error:":e})
+                return Response({"Error:":e})
 
 
 
@@ -223,9 +230,9 @@ def register_user(request):
 
     
     try:
-        new_user_profile = User_profile.objects.create(user=new_user)
+        new_user_profile = User_profile.objects.create(user=new_user,day_of_birth=user_day_of_birth)
     except Exception as e:
-                return Response({"Register User Response Error:":e})
+                return Response({"Error:":e})
 
 
     # create firebase request for JWT
@@ -267,6 +274,27 @@ def register_user(request):
 
     new_user_profile.uuid = firebase_user["localId"]
     new_user_profile.save()
+
+    # Bind chat usr and BackEnd
+    # request to WS backend 
+    ws_username = user_first_name +" "+ user_last_name
+    ws_tukbook_usr_uuid = firebase_user["localId"]
+
+    try:
+        url = "http://127.0.0.1:8000/create_chat_user/"
+
+        payload = json.dumps({
+        "tukbook_usr_uuid": ws_tukbook_usr_uuid,
+        "username": ws_username
+        })
+        headers = {
+        'Content-Type': 'application/json'
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+
+    except Exception as e:
+        return Response({"Error:":e})
 
     return Response({"Register User Response:":"User was successfully registrated."})
 
@@ -336,3 +364,143 @@ def verify_token_test(request):
     passed_data = json_data["passed_data"]
 
     return Response({"Success":"This route is verified!","Your Data":passed_data})
+
+# GET all users ()
+#@firebase_token_verification
+@api_view(['GET'])
+def get_all_users(request):
+    all_normal_users = User_profile.objects.all()
+    array_of_all_info = [{"meno":Nuser.user.first_name,"priezvisko":Nuser.user.last_name,"uuid":Nuser.uuid} for Nuser in all_normal_users]
+
+    return Response({"Success":"This route is verified!","Data":array_of_all_info})
+
+
+# GET all posts ()
+#@firebase_token_verification
+@api_view(['GET'])
+def get_all_posts(request):
+    all_posts = User_post.objects.all()
+    all_data = []
+    
+    for single_post in all_posts: 
+        single_post_JSON = {
+            "id":single_post.pk,
+            "meno":single_post.profile_id.user.first_name,
+            "priezvisko":single_post.profile_id.user.last_name,
+            "text":Text_post.objects.get(user_post_id=single_post).text,
+            "video":[x.photo_sample_url for x in Video_post.objects.filter(user_video_id=single_post)],
+            "audio":[x.photo_sample_url for x in Audio_post.objects.filter(user_audio_id=single_post)],
+            "image":[x.photo_sample_url for x in Photo_post.objects.filter(user_post_id=single_post)],
+            "likesQty":len(Post_like.objects.filter(post_id=single_post)),
+            "likers":[{"meno":liker.profile_id.user.first_name,"priezvisko":liker.profile_id.user.first_name,"email":liker.profile_id.user.first_name} for liker in Post_like.objects.filter(post_id=single_post)],
+            "comments":[{"id":comment.pk,"meno":comment.profile_id.user.first_name,"priezvisko":comment.profile_id.user.last_name,"email":comment.profile_id.user.email,"createdAt":comment.created_date,"text":comment.text} for comment in Post_comment.objects.filter(post_id=single_post)],
+            "createdAt":single_post.created_date
+            }
+        all_data.append(single_post_JSON)
+ 
+
+    return Response({"Success":"This route is verified!","Data":all_data})
+
+#@firebase_token_verification
+@api_view(['GET'])
+def get_user_info(request,uuid_):
+    try:
+        user_info = User_profile.objects.get(uuid=uuid_)
+        all_data = {
+            "meno":user_info.user.first_name,
+            "priezvisko":user_info.user.last_name,
+            "email":user_info.user.email,
+            "dateOfBirth":user_info.day_of_birth
+            }
+        
+    except Exception as e:
+        return Response({"Error":str(e)})
+    
+    return Response({"Success":"This route is verified!","Data":all_data})
+
+
+
+#############################################
+# 
+#   POST
+#
+#############################################
+
+
+@csrf_exempt
+#@firebase_token_verification
+@api_view(['POST'])
+def create_post(request):
+    
+    raw_data = request.body.decode()
+    
+    json_data = json.loads(raw_data)
+
+    user_uuid = json_data["uuid"]
+    user_text = json_data["text"]
+
+    audio_url = json_data["audio"]
+    video_url = json_data["video"]
+    photo_url = json_data["photo"]
+
+
+
+    user1 = User_profile.objects.get(uuid=user_uuid)
+    post1 = User_post.objects.create(profile_id=user1) 
+    text1 = Text_post.objects.create(user_post_id = post1, text=user_text)
+
+    audio1 = Audio_post.objects.create(user_audio_id = post1, photo_sample_url=audio_url)
+    video1 = Video_post.objects.create(user_video_id = post1, photo_sample_url=video_url)
+    photo1 = Photo_post.objects.create(user_post_id = post1, photo_sample_url=photo_url)
+
+    return Response({"Success":"This route is verified!","Post": "created"})
+
+
+@api_view(['GET'])
+def delete_post(request,pk):
+    try:
+        post1 = User_post.objects.get(pk=pk) 
+        post1.delete()
+    except Exception as e:
+        return Response({"Error":str(e)})
+        
+    return Response({"Success":"This route is verified!","Post": "deleted"})
+
+
+    
+
+@csrf_exempt
+#@firebase_token_verification
+@api_view(['POST'])
+def create_post_comment(request):
+    
+    raw_data = request.body.decode()
+    
+    json_data = json.loads(raw_data)
+
+    user_uuid = json_data["uuid"]
+    user_post_id = json_data["post_id"]
+    comment_text = json_data["text"]
+
+    try:
+        user1 = User_profile.objects.get(uuid=user_uuid)
+        post1 = User_post.objects.get(pk=user_post_id) 
+        comment1 = Post_comment.objects.create(post_id=post1,profile_id=user1,text=comment_text)
+    except Exception as e:
+        return Response({"Error":str(e)})
+
+    return Response({"Success":"This route is verified!","Comment": "created"})
+
+
+
+#@firebase_token_verification
+@api_view(['GET'])
+def delete_post_comment(request,pk):
+    try:
+        post1 = Post_comment.objects.get(pk=pk) 
+        post1.delete()
+    except Exception as e:
+        return Response({"Error":str(e)})
+        
+    return Response({"Success":"This route is verified!","Comment": "deleted"})
+
