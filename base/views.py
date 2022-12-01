@@ -1,4 +1,3 @@
-## Django imports
 from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 import pyrebase
@@ -281,7 +280,7 @@ def register_user(request):
     ws_tukbook_usr_uuid = firebase_user["localId"]
 
     try:
-        url = "http://127.0.0.1:8000/create_chat_user/"
+        url = "https://pz603fr.pythonanywhere.com/create_chat_user/"
 
         payload = json.dumps({
         "tukbook_usr_uuid": ws_tukbook_usr_uuid,
