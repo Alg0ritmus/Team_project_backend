@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-)*z%te^jkb&8s$so%yop!80@q)#4(yamt*6x+ph9(lxr(f3(1!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*','tukebook.herokuapp.com']
+ALLOWED_HOSTS = ['*','https://teamprojectbackend-production.up.railway.app']
 
 
 # Application definition
@@ -196,7 +196,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_COOKIE_SECURE = True
 
 
-CSRF_TRUSTED_ORIGINS = ['https://teamprojectbackend-production.up.railway.app']
+CSRF_TRUSTED_ORIGINS = ['https://teamprojectbackend-production.up.railway.app','*']
 
 
 STATIC_URL = '/static/'
