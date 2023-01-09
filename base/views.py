@@ -280,7 +280,7 @@ def register_user(request):
     ws_tukbook_usr_uuid = firebase_user["localId"]
 
     try:
-        url = "https://pz603fr.pythonanywhere.com/create_chat_user/"
+        url = "https://teamprojectchatapp-production.up.railway.app/create_chat_user/"
 
         payload = json.dumps({
         "tukbook_usr_uuid": ws_tukbook_usr_uuid,
