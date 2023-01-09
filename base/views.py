@@ -330,7 +330,7 @@ def login_user(request):
     except Exception as e:
         message="Invalid Credentials!"
         print(e)
-        return Response({"message":message})
+        return Response({"Error":message})
     
     return Response(user_tokens)
 
