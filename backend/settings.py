@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-)*z%te^jkb&8s$so%yop!80@q)#4(yamt*6x+ph9(lxr(f3(1!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1','tukebook.herokuapp.com']
+ALLOWED_HOSTS = ['*','tukebook.herokuapp.com']
 
 
 # Application definition
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'whitenoise.runserver_nostatic',
     'base.apps.BaseConfig',
     
     'rest_framework',
@@ -106,6 +106,7 @@ SIMPLE_JWT = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
 
@@ -182,7 +183,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -192,9 +193,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Allow all origins by P.Z. (from cors headers)
 
-CORS_ALLOW_ALL_ORIGINS = True
+CSRF_COOKIE_SECURE = True
 
 
-STATIC_ROOT =  os.path.join(BASE_DIR, 'staticfiles')
-#STATICFILES_DIRS = (os.path.join(BASE_DIR,'static'),)
-django_heroku.settings(locals())
+CSRF_TRUSTED_ORIGINS = ['https://teamprojectbackend-production.up.railway.app']
+
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_STORAGE="whitenoise.storage.CompressedManifestStaticFilesStorage"
